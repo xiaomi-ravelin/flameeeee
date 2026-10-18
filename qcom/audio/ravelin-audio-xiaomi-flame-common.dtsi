@@ -1,0 +1,183 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/*
+ * Xiaomi Flame audio, based on ravelin-audio-qrd.dtsi.
+ */
+
+#include "ravelin-audio-qrd.dtsi"
+
+&lpass_cdc {
+	qcom,num-macros = <3>;
+};
+
+&wsa_macro {
+	status = "disabled";
+};
+
+&wsa2_macro {
+	status = "disabled";
+};
+
+&wcd937x_codec {
+	qcom,cdc-micbias1-mv = <2700>;
+	qcom,cdc-micbias2-mv = <2700>;
+	qcom,cdc-micbias3-mv = <2700>;
+};
+
+&waipio_snd {
+	asoc-codec-names = "msm-stub-codec.1", "lpass-cdc", "wcd937x_codec";
+	asoc-codec = <&stub_codec>, <&lpass_cdc>, <&wcd937x_codec>;
+
+	qcom,wsa-max-devs = <0>;
+
+	qcom,msm-mbhc-gnd-swh = <1>;
+	qcom,msm-mbhc-hphl-swh = <1>;
+	qcom,msm-mbhc-usbc-audio-supported = <0>;
+
+	qcom,audio-routing =
+		"AMIC1", "Analog Mic1",
+		"AMIC1", "MIC BIAS1",
+		"AMIC2", "Analog Mic2",
+		"AMIC2", "MIC BIAS2",
+		"AMIC3", "Analog Mic3",
+		"AMIC3", "MIC BIAS3",
+		"TX DMIC0", "Digital Mic0",
+		"TX DMIC0", "MIC BIAS3",
+		"TX DMIC1", "Digital Mic1",
+		"TX DMIC1", "MIC BIAS3",
+		"TX DMIC2", "Digital Mic2",
+		"TX DMIC2", "MIC BIAS1",
+		"TX DMIC3", "Digital Mic3",
+		"TX DMIC3", "MIC BIAS1",
+		"IN1_HPHL", "HPHL_OUT",
+		"IN2_HPHR", "HPHR_OUT",
+		"IN3_AUX", "AUX_OUT",
+		"RX_TX DEC0_INP", "TX DEC0 MUX",
+		"RX_TX DEC1_INP", "TX DEC1 MUX",
+		"RX_TX DEC2_INP", "TX DEC2 MUX",
+		"RX_TX DEC3_INP", "TX DEC3 MUX",
+		"TX SWR_INPUT", "WCD_TX_OUTPUT",
+		"VA SWR_INPUT", "VA_SWR_CLK",
+		"VA SWR_INPUT", "WCD_TX_OUTPUT",
+		"VA_AIF1 CAP", "VA_SWR_CLK",
+		"VA_AIF2 CAP", "VA_SWR_CLK",
+		"VA_AIF3 CAP", "VA_SWR_CLK";
+
+	si,sia81xx-max-num = <1>;
+	si,sia81xx-aux-devs = <&si_pa_L>;
+	si,sia81xx-aux-devs-prefix = "SpkrMonoL";
+};
+
+&tlmm {
+	fs15xx_id_default: fs15xx_id_default {
+		mux {
+			pins = "gpio50";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio50";
+			input-enable;
+			bias-pull-down;
+			drive-strength = <2>;
+		};
+	};
+
+	fs15xx_id_active: fs15xx_id_active {
+		mux {
+			pins = "gpio50";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio50";
+			input-enable;
+			bias-pull-up;
+			drive-strength = <2>;
+		};
+	};
+
+	fs15xx_cmd_default: fs15xx_cmd_default {
+		mux {
+			pins = "gpio99";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio99";
+			output-low;
+			bias-disable;
+			drive-strength = <8>;
+		};
+	};
+
+	fs15xx_mod_default: fs15xx_mod_default {
+		mux {
+			pins = "gpio29";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio29";
+			output-low;
+			bias-disable;
+			drive-strength = <2>;
+		};
+	};
+
+	sia81xx_gpio_L: sia81xx_gpio_L {
+		mux {
+			pins = "gpio99";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio99";
+			bias-disable;
+			drive-strength = <6>;
+		};
+	};
+
+	sia81xx_gpio_id: sia81xx_gpio_id {
+		mux {
+			pins = "gpio50";
+			function = "gpio";
+		};
+
+		config {
+			pins = "gpio50";
+			bias-pull-up;
+			drive-strength = <10>;
+		};
+	};
+};
+
+&soc {
+	fs15xx: aud_fs15xx {
+		compatible = "foursemi,fs15xx";
+		pinctrl-names = "fs15xx_id_default", "fs15xx_id_active",
+				"fs15xx_cmd_default", "fs15xx_mod_default";
+		pinctrl-0 = <&fs15xx_id_default>;
+		pinctrl-1 = <&fs15xx_id_active>;
+		pinctrl-2 = <&fs15xx_cmd_default>;
+		pinctrl-3 = <&fs15xx_mod_default>;
+		fsm,id-gpio = <&tlmm 50 0>;
+		fsm,cmd-gpio = <&tlmm 99 0>;
+		fsm,mod-gpio = <&tlmm 29 0>;
+		fsm,dev-type = <1>;
+		status = "okay";
+	};
+
+	si_pa_L: si_pa_L {
+		compatible = "si,sia81xx";
+		si,si_pa_type = "sia8100x";
+		si,si_pa_disable_pin = <0>;
+		channel_num = <0>;
+		en_dynamic_id = <1>;
+		pinctrl-names = "si_pa_gpio", "si_pa_id";
+		pinctrl-0 = <&sia81xx_gpio_L>;
+		pinctrl-1 = <&sia81xx_gpio_id>;
+		si,si_pa_id = <&tlmm 50 0>;
+		si,si_pa_owi = <&tlmm 99 0>;
+		si,si_pa_reset = <&tlmm 99 0>;
+	};
+};

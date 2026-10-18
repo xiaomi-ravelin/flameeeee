@@ -38,6 +38,7 @@ dtbo-$(CONFIG_ARCH_RAVELIN) += ravelin-audio.dtbo
 dtbo-$(CONFIG_SKY_DTB) += ravelin-audio-xiaomi-sky.dtbo
 dtbo-$(CONFIG_BREEZE_DTB) += ravelin-audio-xiaomi-breeze.dtbo
 dtbo-$(CONFIG_MIST_DTB) += ravelin-audio-xiaomi-mist.dtbo
+dtbo-$(CONFIG_FLAME_DTB) += ravelin-audio-xiaomi-flame.dtbo
 else
 dtbo-$(CONFIG_ARCH_RAVELIN) += ravelin-audio.dtbo \
                  ravelin-audio-idp.dtbo \
