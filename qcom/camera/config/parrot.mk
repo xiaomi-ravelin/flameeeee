@@ -11,6 +11,7 @@ ifeq ($(CONFIG_XIAOMI_DEVICE_DTBS),y)
 dtbo-$(CONFIG_SKY_DTB) += ravelin-camera-sensor-sky.dtbo
 dtbo-$(CONFIG_BREEZE_DTB) += ravelin-camera-sensor-breeze.dtbo
 dtbo-$(CONFIG_MIST_DTB) += ravelin-camera-sensor-mist.dtbo
+dtbo-$(CONFIG_FLAME_DTB) += ravelin-camera-sensor-flame.dtbo
 else
 dtbo-$(CONFIG_ARCH_RAVELIN) += raveline-camera-sensor-idp.dtbo
 dtbo-$(CONFIG_ARCH_RAVELIN) += raveline-camera-sensor-qrd.dtbo
