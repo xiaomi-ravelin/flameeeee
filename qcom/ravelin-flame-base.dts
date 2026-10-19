@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include "ravelin-flame-base.dtsi"
+
+/ {
+	model = "Qualcomm Technologies, Inc. Flame QRD";
+	compatible = "qcom,ravelin";
+	qcom,msm-id = <568 0x10000>;
+	qcom,board-id = <0 0>;
+};

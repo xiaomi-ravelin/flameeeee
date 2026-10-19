@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/*
+ * Xiaomi Flame base.
+ */
+
+#include "ravelin-xiaomi-common-base.dtsi"
+#include "ravelin-xiaomi-legacy-memory.dtsi"
+
+&mpss_mem {
+	reg = <0x0 0x8a000000 0x0 0xda00000>;
+};
+
+&ufshc_mem {
+	/* Stock trustzone doesn't broadcast the HWKM TP key */
+	qcom,ice-hwkm-set-tpkey;
+};
+
+/* Stock modem asks for 8 MB of rmtfs shared memory, as a no-map pool below 4 GB */
+&reserved_memory {
+	rmtfs_mem: rmtfs_region {
+		compatible = "shared-dma-pool";
+		alloc-ranges = <0x0 0x0 0x0 0xffffffff>;
+		no-map;
+		size = <0x0 0x800000>;
+		alignment = <0x0 0x800000>;
+	};
+};
+
+&soc {
+	qcom,rmtfs_sharedmem@0 {
+		reg = <0x0 0x800000>;
+		memory-region = <&rmtfs_mem>;
+	};
+};

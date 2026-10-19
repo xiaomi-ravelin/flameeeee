@@ -1,0 +1,48 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+&soc {
+	goodix_fp {
+		compatible = "xiaomi,goodixfingerprint";
+		interrupt-parent = <&tlmm>;
+		interrupts = <105 1>;
+		fp-gpio-irq = <&tlmm 105 0>;
+		fp-gpio-reset = <&tlmm 102 0>;
+		fp_vdd_vreg-supply = <&L6E>;
+		pinctrl-names = "xiaomifp_reset_outputlow", "xiaomifp_reset_outputhigh", "xiaomifp_irq_active";
+		pinctrl-0 = <&msm_gpio_102>;
+		pinctrl-1 = <&msm_gpio_102_output_high>;
+		pinctrl-2 = <&msm_gpio_105>;
+		status = "okay";
+	};
+
+	fpc1020 {
+		status = "okay";
+		compatible = "xiaomi,fpcfingerprint";
+		interrupt-parent = <&tlmm>;
+		interrupts = <105 1>;
+		fpc,gpio_rst = <&tlmm 102 0>;
+		fpc,gpio_irq = <&tlmm 105 0>;
+		fpc,enable-on-boot;
+		fp_vdd_vreg-supply = <&L6E>;
+		pinctrl-names = "xiaomifp_reset_outputlow", "xiaomifp_reset_outputhigh", "xiaomifp_irq_active";
+		pinctrl-0 = <&msm_gpio_102>;
+		pinctrl-1 = <&msm_gpio_102_output_high>;
+		pinctrl-2 = <&msm_gpio_105>;
+	};
+
+	silead_fp {
+		compatible = "sil,silead_fp";
+		interrupt-parent = <&tlmm>;
+		interrupts = <105 1>;
+		irq-gpios = <&tlmm 105 0>;
+		rst-gpios = <&tlmm 102 0>;
+		vdd-supply = <&L6E>;
+		status = "okay";
+	};
+
+	xiaomi_fingerprint {
+		compatible = "xiaomi-fingerprint";
+		status = "ok";
+		fingerprint,name = "xiaomi-fingerprint";
+	};
+};

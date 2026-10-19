@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/*
+ * Xiaomi Flame board.
+ */
+
+#include "ravelin-xiaomi-common-overlay-base.dtsi"
+#include "ravelin-xiaomi-common-overlay.dtsi"
+#include "ravelin-flame-charger-overlay.dtsi"
+#include "ravelin-flame-fingerprint-overlay.dtsi"
+
+&ufshc_mem {
+	qcom,ufs-dev-revert;
+};
+
+&usb2_phy0 {
+	qcom,param-override-seq = <0x86 0x6c 0xcb 0x70 0x1d 0x74 0x03 0x78>;
+};

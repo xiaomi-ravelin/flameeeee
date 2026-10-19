@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/dts-v1/;
+
+#include "ravelin-flame-base.dtsi"
+#include "ravelin-low-memory.dtsi"
+
+/ {
+	model = "Qualcomm Technologies, Inc. Ravelin 4Gb SoC";
+	compatible = "qcom,ravelin";
+	qcom,msm-id = <568 0x10000>;
+	qcom,board-id = <0 0x600>;
+};
+
+&mem_client_3_size {
+	qcom,peripheral-size = <0x200000>;
+};
