@@ -489,3 +489,13 @@ audio_modules.register(
         "fsm_i2c.c",
     ]
 )
+
+# >>>> FS1512 MODULES <<<<
+audio_modules.register(
+    name = "fs1512_dlkm",
+    path = ASOC_CODECS_PATH + "/fs1512",
+    config_option = "CONFIG_SND_SOC_FS1512",
+    srcs = [
+        "fs15xx.c",
+    ]
+)
