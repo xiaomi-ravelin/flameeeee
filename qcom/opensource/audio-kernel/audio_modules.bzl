@@ -509,3 +509,17 @@ audio_modules.register(
         "lct_audio_info.c",
     ]
 )
+
+# >>>> SIPA MODULES <<<<
+audio_modules.register(
+    name = "sipa_dlkm",
+    path = ASOC_CODECS_PATH + "/sia8001",
+    config_option = "CONFIG_SND_SOC_SIPA",
+    srcs = [
+        "sipa.c",
+        "sipa_91xx.c",
+        "sipa_aux_dev_if.c",
+        "sipa_parameter.c",
+        "sipa_regmap.c",
+    ]
+)
