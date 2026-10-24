@@ -47,6 +47,7 @@
 #include "msm_common.h"
 #include "msm_dailink.h"
 
+#if defined(CONFIG_TARGET_PRODUCT_MIST)
 #if IS_ENABLED(CONFIG_SND_SOC_FS181X)
 extern int frsm_add_codec_controls(struct snd_soc_component *codec);
 #endif
@@ -81,6 +82,7 @@ static void msm_add_amp_codec_controls(struct snd_soc_component *component)
 	}
 #endif
 }
+#endif
 
 #define DRV_NAME "waipio-asoc-snd"
 #define __CHIPSET__ "WAIPIO "
@@ -2061,7 +2063,9 @@ static int msm_rx_tx_codec_init(struct snd_soc_pcm_runtime *rtd)
 		}
 	}
 	lpass_cdc_set_port_map(lpass_cdc_component, ARRAY_SIZE(sm_port_map), sm_port_map);
+#if defined(CONFIG_TARGET_PRODUCT_MIST)
 	msm_add_amp_codec_controls(component);
+#endif
 
 done:
 	codec_reg_done = true;

@@ -32,11 +32,11 @@
 #include "internal.h"
 #include "asoc/bolero-slave-internal.h"
 
-#if IS_ENABLED(CONFIG_SND_SOC_AW87XXX)
+#if IS_ENABLED(CONFIG_SND_SOC_AW87XXX) && defined(CONFIG_TARGET_PRODUCT_SKY)
 extern int aw87xxx_set_profile(int dev_index, char *profile);
 extern int aw87xxx_add_codec_controls(void *codec);
 #endif
-#if IS_ENABLED(CONFIG_SND_SOC_FS15XX)
+#if IS_ENABLED(CONFIG_SND_SOC_FS15XX) && (defined(CONFIG_TARGET_PRODUCT_SKY) || defined(CONFIG_TARGET_PRODUCT_BREEZE))
 extern void fsm_speaker_onn(void);
 extern void fsm_speaker_off(void);
 extern void fsm_add_codec_controls(struct snd_soc_component *codec);
@@ -1070,10 +1070,10 @@ static int wcd937x_codec_enable_aux_pa(struct snd_soc_dapm_widget *w,
 						SLV_BOLERO_EVT_RX_MUTE,
 						(WCD_RX3 << 0x10));
 		wcd_enable_irq(&wcd937x->irq_info, WCD937X_IRQ_AUX_PDM_WD_INT);
-#if IS_ENABLED(CONFIG_SND_SOC_AW87XXX)
+#if IS_ENABLED(CONFIG_SND_SOC_AW87XXX) && defined(CONFIG_TARGET_PRODUCT_SKY)
 		aw87xxx_set_profile(0, "Music");
 #endif
-#if IS_ENABLED(CONFIG_SND_SOC_FS15XX)
+#if IS_ENABLED(CONFIG_SND_SOC_FS15XX) && (defined(CONFIG_TARGET_PRODUCT_SKY) || defined(CONFIG_TARGET_PRODUCT_BREEZE))
 		fsm_speaker_onn();
 #endif
 		break;
@@ -1083,10 +1083,10 @@ static int wcd937x_codec_enable_aux_pa(struct snd_soc_dapm_widget *w,
 			wcd937x->update_wcd_event(wcd937x->handle,
 						SLV_BOLERO_EVT_RX_MUTE,
 						(WCD_RX3 << 0x10 | 0x1));
-#if IS_ENABLED(CONFIG_SND_SOC_AW87XXX)
+#if IS_ENABLED(CONFIG_SND_SOC_AW87XXX) && defined(CONFIG_TARGET_PRODUCT_SKY)
 		aw87xxx_set_profile(0, "Off");
 #endif
-#if IS_ENABLED(CONFIG_SND_SOC_FS15XX)
+#if IS_ENABLED(CONFIG_SND_SOC_FS15XX) && (defined(CONFIG_TARGET_PRODUCT_SKY) || defined(CONFIG_TARGET_PRODUCT_BREEZE))
 		fsm_speaker_off();
 #endif
 		break;
@@ -3095,7 +3095,7 @@ static int wcd937x_soc_codec_probe(struct snd_soc_component *component)
 		}
 	}
 
-#if IS_ENABLED(CONFIG_SND_SOC_AW87XXX)
+#if IS_ENABLED(CONFIG_SND_SOC_AW87XXX) && defined(CONFIG_TARGET_PRODUCT_SKY)
 	ret = aw87xxx_add_codec_controls(component);
 	if (ret < 0) {
 		dev_err(component->dev, "%s: aw87xxx add controls failed %d\n",
@@ -3103,7 +3103,7 @@ static int wcd937x_soc_codec_probe(struct snd_soc_component *component)
 		return ret;
 	}
 #endif
-#if IS_ENABLED(CONFIG_SND_SOC_FS15XX)
+#if IS_ENABLED(CONFIG_SND_SOC_FS15XX) && (defined(CONFIG_TARGET_PRODUCT_SKY) || defined(CONFIG_TARGET_PRODUCT_BREEZE))
 	fsm_add_codec_controls(component);
 #endif
 	return ret;

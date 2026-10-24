@@ -102,6 +102,14 @@ CDEFINES +=	-DANI_LITTLE_BYTE_ENDIAN \
 		-Werror\
 		-D__linux__
 
+ifneq (,$(filter $(TARGET_PRODUCT), sky))
+	CDEFINES += -DCONFIG_TARGET_PRODUCT_SKY
+endif
+
+ifneq (,$(filter $(TARGET_PRODUCT), breeze))
+	CDEFINES += -DCONFIG_TARGET_PRODUCT_BREEZE
+endif
+
 KBUILD_CPPFLAGS += $(CDEFINES)
 
 # Currently, for versions of gcc which support it, the kernel Makefile
