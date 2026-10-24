@@ -499,3 +499,13 @@ audio_modules.register(
         "fs15xx.c",
     ]
 )
+
+# >>>> LCT_AUDIO_INFO MODULES <<<<
+audio_modules.register(
+    name = "lct_audio_info_dlkm",
+    path = ASOC_CODECS_PATH + "/lct_audio_info",
+    config_option = "CONFIG_LCT_AUDIO_INFO",
+    srcs = [
+        "lct_audio_info.c",
+    ]
+)

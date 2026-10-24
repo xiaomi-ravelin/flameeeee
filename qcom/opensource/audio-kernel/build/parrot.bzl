@@ -42,7 +42,8 @@ def define_parrot():
             "wsa881x_dlkm",
             "aw87xxx_dlkm",
             "fs15xx_dlkm",
-            "fs1512_dlkm"
+            "fs1512_dlkm",
+            "lct_audio_info_dlkm",
         ],
         config_options = [
             "CONFIG_SND_SOC_WAIPIO",
