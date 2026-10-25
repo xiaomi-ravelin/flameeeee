@@ -41,6 +41,9 @@ extern void fsm_speaker_onn(void);
 extern void fsm_speaker_off(void);
 extern void fsm_add_codec_controls(struct snd_soc_component *codec);
 #endif
+#if IS_ENABLED(CONFIG_SND_SOC_FS1512) && defined(CONFIG_TARGET_PRODUCT_FLAME)
+#include "../fs1512/fs15xx.h"
+#endif /*CONFIG_SND_SOC_FS1512*/
 
 #define WCD9370_VARIANT 0
 #define WCD9375_VARIANT 5
@@ -2466,6 +2469,58 @@ static const struct snd_kcontrol_new tx_adc2_mux =
 static const struct snd_kcontrol_new rx_rdac3_mux =
 	SOC_DAPM_ENUM("RDAC3_MUX Mux", rdac3_enum);
 
+#if defined(CONFIG_TARGET_PRODUCT_FLAME)
+#if defined(CONFIG_SND_SOC_FS1512)
+extern int fs15xx_ext_amp_set(int enable);
+static int fs1512_dev_0_pa_event(struct snd_soc_dapm_widget *w,
+		     struct snd_kcontrol *control, int event)
+{
+	switch (event) {
+	case SND_SOC_DAPM_POST_PMU:
+		fs15xx_ext_amp_set(1);
+		break;
+	case SND_SOC_DAPM_PRE_PMD:
+		fs15xx_ext_amp_set(0);
+		break;
+	default:
+		pr_err("%s: invalid DAPM event %d\n", __func__, event);
+		break;
+	}
+	return 0;
+}
+#endif /* CONFIG_SND_SOC_FS1512 */
+
+#if defined(CONFIG_SND_SOC_SIPA)
+extern int wcd937x_sia81xx_resume(void);
+extern int wcd937x_sia81xx_suspend(void);
+extern int wcd937x_no_sia81xx(void);
+static int sia81xx_dev_0_pa_event(struct snd_soc_dapm_widget *w,
+		     struct snd_kcontrol *control, int event)
+{
+	int g_sipa_chip_status;
+	g_sipa_chip_status = wcd937x_no_sia81xx();
+	if(g_sipa_chip_status){
+		switch (event) {
+		case SND_SOC_DAPM_POST_PMU:
+			wcd937x_sia81xx_resume();
+			pr_debug("%s: power on", __func__);
+			break;
+		case SND_SOC_DAPM_PRE_PMD:
+			wcd937x_sia81xx_suspend();
+			pr_debug("%s: power off", __func__);
+			break;
+		default:
+			pr_err("%s: invalid DAPM event %d\n", __func__, event);
+			break;
+		}
+		return 0;
+	} else {
+		return 0;
+	}
+}
+#endif /* CONFIG_SND_SOC_SIPA */
+#endif
+
 static const struct snd_soc_dapm_widget wcd937x_dapm_widgets[] = {
 
 	/*input widgets*/
@@ -2619,6 +2674,18 @@ static const struct snd_soc_dapm_widget wcd937x_dapm_widgets[] = {
 				SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMU |
 				SND_SOC_DAPM_POST_PMD),
 
+#if defined(CONFIG_TARGET_PRODUCT_FLAME)
+#if defined(CONFIG_SND_SOC_FS1512)
+	SND_SOC_DAPM_OUT_DRV_E("FS1512_DEV_0", SND_SOC_NOPM, 0, 0, NULL, 0,
+				fs1512_dev_0_pa_event, SND_SOC_DAPM_POST_PMU |
+				SND_SOC_DAPM_PRE_PMD),
+#endif /* CONFIG_SND_SOC_FS1512 */
+#if defined(CONFIG_SND_SOC_SIPA)
+	SND_SOC_DAPM_OUT_DRV_E("SIA81XX_DEV_0", SND_SOC_NOPM, 0, 0, NULL, 0,
+				sia81xx_dev_0_pa_event, SND_SOC_DAPM_POST_PMU |
+				SND_SOC_DAPM_PRE_PMD),
+#endif /* CONFIG_SND_SOC_SIPA */
+#endif
 };
 
 static const struct snd_soc_dapm_widget wcd9375_dapm_widgets[] = {
@@ -2733,7 +2800,18 @@ static const struct snd_soc_dapm_route wcd937x_audio_map[] = {
 	{"RDAC4", NULL, "RX3"},
 	{"AUX_RDAC", "Switch", "RDAC4"},
 	{"AUX PGA", NULL, "AUX_RDAC"},
+#if (defined(CONFIG_SND_SOC_FS1512) || defined(CONFIG_SND_SOC_SIPA)) && defined(CONFIG_TARGET_PRODUCT_FLAME)
+#if defined(CONFIG_SND_SOC_FS1512)
+	{"FS1512_DEV_0", NULL, "AUX PGA"},
+	{"AUX", NULL, "FS1512_DEV_0"},
+#endif /* CONFIG_SND_SOC_FS1512 */
+#if defined(CONFIG_SND_SOC_SIPA)
+	{"SIA81XX_DEV_0", NULL, "AUX PGA"},
+	{"AUX", NULL, "SIA81XX_DEV_0"},
+#endif /* CONFIG_SND_SOC_SIPA */
+#else
 	{"AUX", NULL, "AUX PGA"},
+#endif
 
 	{"RDAC3_MUX", "RX3", "RX3"},
 	{"RDAC3_MUX", "RX1", "RX1"},

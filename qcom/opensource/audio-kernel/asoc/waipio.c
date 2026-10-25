@@ -47,6 +47,16 @@
 #include "msm_common.h"
 #include "msm_dailink.h"
 
+#if defined(CONFIG_TARGET_PRODUCT_FLAME)
+#ifdef CONFIG_SND_SOC_FS1512
+#include "codecs/fs1512/fs15xx.h"
+#endif /*CONFIG_SND_SOC_FS1512*/
+
+#ifdef CONFIG_SND_SOC_SIPA
+#include "codecs/sia8001/sipa_aux_dev_if.h"
+#endif /*CONFIG_SND_SOC_SIPA*/
+#endif
+
 #if defined(CONFIG_TARGET_PRODUCT_MIST)
 #if IS_ENABLED(CONFIG_SND_SOC_FS181X)
 extern int frsm_add_codec_controls(struct snd_soc_component *codec);
@@ -1947,6 +1957,9 @@ static int msm_tx_codec_init(struct snd_soc_pcm_runtime *rtd)
 	return msm_common_dai_link_init(rtd);
 }
 
+#if defined(CONFIG_LCT_AUDIO_INFO) && defined(CONFIG_TARGET_PRODUCT_FLAME)
+extern int lct_audio_info_create_sysfs(void);
+#endif
 
 static int msm_rx_tx_codec_init(struct snd_soc_pcm_runtime *rtd)
 {
@@ -1971,6 +1984,16 @@ static int msm_rx_tx_codec_init(struct snd_soc_pcm_runtime *rtd)
 
 	snd_soc_dapm_new_controls(dapm, msm_int_dapm_widgets,
 				ARRAY_SIZE(msm_int_dapm_widgets));
+
+	#if defined(CONFIG_TARGET_PRODUCT_FLAME)
+	#ifdef CONFIG_SND_SOC_FS1512
+	fs15xx_add_codec_kcontrol(lpass_cdc_component);
+	#endif /*CONFIG_SND_SOC_FS1512*/
+
+	#ifdef CONFIG_LCT_AUDIO_INFO
+	lct_audio_info_create_sysfs();
+	#endif
+	#endif
 
 	snd_soc_dapm_ignore_suspend(dapm, "Digital Mic0");
 	snd_soc_dapm_ignore_suspend(dapm, "Digital Mic1");
@@ -2351,6 +2374,10 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 	/* parse upd configuration */
 	msm_parse_upd_configuration(pdev, pdata);
 
+	#if defined(CONFIG_SND_SOC_SIPA) && defined(CONFIG_TARGET_PRODUCT_FLAME)
+	soc_aux_init_only_sia81xx(pdev, card);
+	#endif /*CONFIG_SND_SOC_SIPA*/
+
 	ret = devm_snd_soc_register_card(&pdev->dev, card);
 	if (ret == -EPROBE_DEFER) {
 		if (codec_reg_done)
@@ -2422,6 +2449,9 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 
 	return 0;
 err:
+	#if defined(CONFIG_SND_SOC_SIPA) && defined(CONFIG_TARGET_PRODUCT_FLAME)
+	soc_aux_deinit_only_sia81xx(pdev, card);
+	#endif /*CONFIG_SND_SOC_SIPA*/
 	devm_kfree(&pdev->dev, pdata);
 	return ret;
 }
