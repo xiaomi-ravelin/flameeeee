@@ -62,3 +62,20 @@ goodix_core-y := \
 	goodix_berlin/goodix_ts_gesture.o \
 	goodix_berlin/goodix_ts_inspect.o \
 	goodix_berlin/goodix_ts_tools.o
+
+obj-m += focaltech_tp.o
+focaltech_tp-y := \
+	FT8057M/focaltech_core.o \
+	FT8057M/focaltech_ex_fun.o \
+	FT8057M/focaltech_ex_mode.o \
+	FT8057M/focaltech_gesture.o \
+	FT8057M/focaltech_esdcheck.o \
+	FT8057M/focaltech_point_report_check.o \
+	FT8057M/focaltech_proximity.o \
+	FT8057M/focaltech_flash_spi.o \
+	FT8057M/focaltech_spi_v2.o \
+	FT8057M/focaltech_debug.o \
+	FT8057M/focaltech_hp.o \
+	FT8057M/focaltech_test/focaltech_test.o \
+	FT8057M/focaltech_test/focaltech_test_ini.o \
+	FT8057M/focaltech_test/supported_ic/focaltech_test_ft8057m.o
