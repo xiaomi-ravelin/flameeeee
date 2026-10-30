@@ -74,7 +74,15 @@ int sia91xx_append_i2c_address(
 	int num_widgets, struct snd_soc_dai_driver *dai_drv, int num_dai);
 int sia91xx_smartpa_start(sipa_dev_t *si_pa, int stream);
 int sia91xx_smartpa_soft_mute(sipa_dev_t *si_pa);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6,6,0))
 int sipa_i2c_probe(struct i2c_client *i2c, const struct i2c_device_id *id);
+#else
+int sipa_i2c_probe(struct i2c_client *i2c);
+#endif
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6,1,0))
 int sipa_i2c_remove(struct i2c_client *i2c);
+#else
+void sipa_i2c_remove(struct i2c_client *i2c);
+#endif
 
 #endif /* _SIPA_91XX_H */

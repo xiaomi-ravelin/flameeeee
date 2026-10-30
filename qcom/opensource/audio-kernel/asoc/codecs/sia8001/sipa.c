@@ -923,7 +923,7 @@ static int sipa_scene_set(struct sipa_dev_s *si_pa, unsigned int scene)
 
 	if (AUDIO_SCENE_NUM <= scene) {
 		si_pa->scene = AUDIO_SCENE_PLAYBACK;
-		pr_err("[  err][%s] %s: set audio scene val = %ld !!! \r\n",
+		pr_err("[  err][%s] %s: set audio scene val = %d !!! \r\n",
 			LOG_FLAG, __func__, scene);
 	} else {
 		si_pa->scene = scene;
@@ -1069,10 +1069,17 @@ static ssize_t sipa_cmd_show(
 	char *buf)
 {
 	sipa_dev_t *si_pa = (sipa_dev_t *)dev_get_drvdata(cd);
-	char tb[2048];
+	char *tb;
 	char chip_id = 0;
 	char vals[0x64];
 	int owi_pin_val = 0;
+
+	tb = (char *)kmalloc(2048, GFP_KERNEL);
+	if (tb == NULL) {
+		pr_err("[  err][%s] %s: kmalloc fail !!! \r\n",
+					LOG_FLAG, __func__);
+		return -1;
+	}
 
 	if (IS_SUPPORT_OWI_TYPE(si_pa->chip_type)) {
 		owi_pin_val = gpio_get_value(si_pa->owi_pin);
@@ -1086,19 +1093,23 @@ static ssize_t sipa_cmd_show(
 			si_pa->rst_pin,
 			si_pa->owi_pin,	
 			si_pa->owi_cur_mode[si_pa->scene], si_pa->owi_delay_us);
-		strncpy(buf, tb, sizeof(tb));
+		strncpy(buf, tb, 2048);
+
+		kfree(tb);
 		return strlen(buf);
 	}
 
 	if (si_pa->regmap == NULL) {
 		pr_err("[  err][%s] %s: regmap is NULL !!! \r\n",
 					LOG_FLAG, __func__);
+		kfree(tb);
 		return -1;
 	}
 
 	if (IS_DIGITAL_PA_TYPE(si_pa->chip_type)) {
 		sipa_91xx_reg_dump(si_pa, tb);
-		strncpy(buf, tb, sizeof(tb));
+		strncpy(buf, tb, 2048);
+		kfree(tb);
 		return strlen(buf);
 	}
 
@@ -1136,8 +1147,8 @@ static ssize_t sipa_cmd_show(
 		si_pa->rst_pin,
 		si_pa->disable_pin,
 		si_pa->dyn_ud_vdd_port);
-	strncpy(buf, tb, sizeof(tb));
-
+	strncpy(buf, tb, 2048);
+	kfree(tb);
 	return strlen(buf);
 }
 
@@ -1418,7 +1429,7 @@ static int sipa_audio_scene_set(
 	sipa_dev_t *si_pa = snd_soc_codec_get_drvdata(codec);
 #endif
 	uint32_t scene = ucontrol->value.integer.value[0];
-	pr_debug("[debug][%s] %s: ucontrol = %ld, rst = %d, channel = %d \r\n",
+	pr_debug("[debug][%s] %s: ucontrol = %d, rst = %d, channel = %d \r\n",
 		LOG_FLAG, __func__, scene, si_pa->rst_pin, si_pa->channel_num);
 
 	sipa_scene_set(si_pa, scene);
@@ -2159,9 +2170,14 @@ int sipa_pending_actions(sipa_dev_t *si_pa)
 	return 0;
 }
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6,6,0))
 int sipa_i2c_probe(
 	struct i2c_client *client,
 	const struct i2c_device_id *id)
+#else
+int sipa_i2c_probe(
+	struct i2c_client *client)
+#endif
 {
 	sipa_dev_t *si_pa = NULL;
 	struct device_node	*sipa_of_node = NULL;
@@ -2299,6 +2315,7 @@ int sipa_i2c_probe(
 }
 EXPORT_SYMBOL(sipa_i2c_probe);
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6,1,0))
 int sipa_i2c_remove(
 	struct i2c_client *client)
 {
@@ -2326,7 +2343,32 @@ int sipa_i2c_remove(
 	return ret;
 }
 EXPORT_SYMBOL(sipa_i2c_remove);
+#else
+void sipa_i2c_remove(
+	struct i2c_client *client)
+{
+	sipa_dev_t *si_pa = NULL;
 
+	pr_info("[ info][%s] %s: remove \r\n", LOG_FLAG, __func__);
+
+	si_pa = (sipa_dev_t *)dev_get_drvdata(&client->dev);
+	if (NULL == si_pa)
+		return;
+
+	cancel_delayed_work_sync(&si_pa->interrupt_work);
+	// cancel_delayed_work_sync(&si_pa->monitor_work);
+
+	sipa_regmap_remove(si_pa);
+	si_pa->regmap = NULL;
+
+	si_pa->client = NULL;
+
+	put_sipa_dev(si_pa);
+
+	return;
+}
+EXPORT_SYMBOL(sipa_i2c_remove);
+#endif
 
 static const struct i2c_device_id si_sipa_i2c_id[] = {
 	{ SIPA_I2C_NAME, 0 },
@@ -2520,6 +2562,7 @@ static int sipa_property_init(struct device_node *sipa_of_node, sipa_dev_t *si_p
 
 	return 0;
 }
+
 static int sipa_pinctrl_select(struct platform_device *pdev, sipa_dev_t *si_pa)
 {
 	struct pinctrl *si_pa_pinctrl = NULL;
