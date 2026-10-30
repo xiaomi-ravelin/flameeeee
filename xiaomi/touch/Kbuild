@@ -79,3 +79,13 @@ focaltech_tp-y := \
 	FT8057M/focaltech_test/focaltech_test.o \
 	FT8057M/focaltech_test/focaltech_test_ini.o \
 	FT8057M/focaltech_test/supported_ic/focaltech_test_ft8057m.o
+
+obj-m += lct_tp.o
+lct_tp-y := \
+	lct_tp/lct_tp_info.o \
+    lct_tp/lct_tp_work.o \
+    lct_tp/lct_tp_selftest.o \
+    lct_tp/lct_tp_proximity_switch.o \
+    lct_tp/lct_tp_proximity_data.o \
+    lct_tp/lct_tp_gesture.o \
+    lct_tp/lct_tp_grip_area.o
