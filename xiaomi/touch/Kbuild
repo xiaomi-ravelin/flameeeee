@@ -8,6 +8,7 @@ ccflags-y += -DCONFIG_TOUCHSCREEN_XIAOMI_TOUCHFEATURE_MODULE=1
 obj-m += xiaomi_touch.o
 xiaomi_touch-y := xiaomi_touch/xiaomi_touch.o
 
+ifneq (,$(filter $(TARGET_PRODUCT), sky))
 obj-m += nvt_36672c.o
 nvt_36672c-y := \
 	NT36672C_SPI/nt36xxx.o \
@@ -28,7 +29,9 @@ fts_8720-y := \
 	FT8720/focaltech_test/focaltech_test.o \
 	FT8720/focaltech_test/focaltech_test_ini.o \
 	FT8720/focaltech_test/supported_ic/focaltech_test_ft8720.o
+endif
 
+ifneq (,$(filter $(TARGET_PRODUCT), breeze))
 obj-m += nvt_36672c_n19.o
 nvt_36672c_n19-y := \
 	NT36672C_SPI_N19/nt36xxx.o \
@@ -49,7 +52,9 @@ fts_8725-y := \
 	FT8725/focaltech_test/focaltech_test.o \
 	FT8725/focaltech_test/focaltech_test_ini.o \
 	FT8725/focaltech_test/supported_ic/focaltech_test_ft8725.o
+endif
 
+ifneq (,$(filter $(TARGET_PRODUCT), mist))
 obj-m += goodix_core.o
 goodix_core-y := \
 	goodix_berlin/goodix_brl_i2c.o \
@@ -62,7 +67,9 @@ goodix_core-y := \
 	goodix_berlin/goodix_ts_gesture.o \
 	goodix_berlin/goodix_ts_inspect.o \
 	goodix_berlin/goodix_ts_tools.o
+endif
 
+ifneq (,$(filter $(TARGET_PRODUCT), flame))
 obj-m += focaltech_tp.o
 focaltech_tp-y := \
 	FT8057M/focaltech_core.o \
@@ -96,3 +103,4 @@ nt36528a_spi-y := \
 	NT36528A_SPI/nt36xxx_ext_proc.o \
 	NT36528A_SPI/nt36xxx_fw_update.o \
 	NT36528A_SPI/nt36xxx_mp_ctrlram.o
+endif
