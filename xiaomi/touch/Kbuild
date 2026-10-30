@@ -89,3 +89,10 @@ lct_tp-y := \
     lct_tp/lct_tp_proximity_data.o \
     lct_tp/lct_tp_gesture.o \
     lct_tp/lct_tp_grip_area.o
+
+obj-m += nt36528a_spi.o
+nt36528a_spi-y := \
+	NT36528A_SPI/nt36xxx.o \
+	NT36528A_SPI/nt36xxx_ext_proc.o \
+	NT36528A_SPI/nt36xxx_fw_update.o \
+	NT36528A_SPI/nt36xxx_mp_ctrlram.o
