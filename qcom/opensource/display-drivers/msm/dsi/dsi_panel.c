@@ -34,6 +34,7 @@ static void xiaomi_panel_notify(unsigned long event, int blank)
 #include "sde_dbg.h"
 #include "sde_dsc_helper.h"
 #include "sde_vdc_helper.h"
+#include "lcd_bias.h"
 
 /**
  * topology is currently defined by a set of following 3 values:
@@ -189,6 +190,22 @@ static int dsi_panel_gpio_request(struct dsi_panel *panel)
 		}
 	}
 
+	if (gpio_is_valid(r_config->lcm_enp_gpio)) {
+		rc = gpio_request(r_config->lcm_enp_gpio, "lcm_enp_gpio");
+		if (rc) {
+			DSI_ERR("display:  request for lcm_enp_gpio failed, rc=%d\n", rc);
+			goto error_release_mode_sel;
+		}
+	}
+
+	if (gpio_is_valid(r_config->lcm_enn_gpio)) {
+		rc = gpio_request(r_config->lcm_enn_gpio, "lcm_enn_gpio");
+		if (rc) {
+			DSI_ERR("display: request for lcm_enn_gpio failed, rc=%d\n", rc);
+			goto error_release_disp_enp;
+		}
+	}
+
 	if (gpio_is_valid(panel->panel_test_gpio)) {
 		rc = gpio_request(panel->panel_test_gpio, "panel_test_gpio");
 		if (rc) {
@@ -200,6 +217,9 @@ static int dsi_panel_gpio_request(struct dsi_panel *panel)
 	}
 
 	goto error;
+error_release_disp_enp:
+	if (gpio_is_valid(r_config->lcm_enp_gpio))
+		gpio_free(r_config->lcm_enp_gpio);
 error_release_mode_sel:
 	if (gpio_is_valid(panel->bl_config.en_gpio))
 		gpio_free(panel->bl_config.en_gpio);
@@ -218,6 +238,12 @@ static int dsi_panel_gpio_release(struct dsi_panel *panel)
 	int rc = 0;
 	struct dsi_panel_reset_config *r_config = &panel->reset_config;
 	struct dsi_panel_power_config *p_config = &panel->power_config;
+
+	if (gpio_is_valid(r_config->lcm_enp_gpio))
+		gpio_free(r_config->lcm_enp_gpio);
+
+	if (gpio_is_valid(r_config->lcm_enn_gpio))
+		gpio_free(r_config->lcm_enn_gpio);
 
 	if (gpio_is_valid(p_config->vddio_gpio))
 		gpio_free(p_config->vddio_gpio);
@@ -445,6 +471,42 @@ static void dsi_panel_power_gpios_off(struct dsi_panel *panel)
 	usleep_range(5000, 5100);
 }
 
+static int dsi_panel_lcd_bias_on(struct dsi_panel *panel)
+{
+	int rc = 0;
+
+	if (gpio_is_valid(panel->reset_config.lcm_enp_gpio)) {
+		rc = gpio_direction_output(panel->reset_config.lcm_enp_gpio, 1);
+		if (rc) {
+			DSI_ERR("unable to set dir for lcm_enp_gpio rc=%d\n", rc);
+		}
+	}
+	set_lcd_bias_by_index(true);           //Control bias voltage
+	msleep(1);
+	if (gpio_is_valid(panel->reset_config.lcm_enn_gpio)) {
+		rc = gpio_direction_output(panel->reset_config.lcm_enn_gpio, 1);
+		if (rc) {
+			DSI_ERR("unable to set dir for lcm_enn_gpio rc=%d\n", rc);
+		}
+	}
+
+	return rc;
+}
+
+static int dsi_panel_lcd_bias_off(struct dsi_panel *panel)
+{
+
+	if (gpio_is_valid(panel->reset_config.lcm_enn_gpio)) {
+		gpio_set_value(panel->reset_config.lcm_enn_gpio, 0);
+	}
+
+	msleep(1);
+	if (gpio_is_valid(panel->reset_config.lcm_enp_gpio)) {
+		gpio_set_value(panel->reset_config.lcm_enp_gpio, 0);
+	}
+	return 0;
+}
+
 static int dsi_panel_power_on(struct dsi_panel *panel)
 {
 	int rc = 0;
@@ -506,6 +568,8 @@ static int dsi_panel_power_off(struct dsi_panel *panel)
 
 	if (gpio_is_valid(panel->reset_config.disp_en_gpio))
 		gpio_set_value(panel->reset_config.disp_en_gpio, 0);
+
+	dsi_panel_lcd_bias_off(panel);
 
 	if (gpio_is_valid(panel->reset_config.reset_gpio) &&
 					!panel->reset_gpio_always_on)
@@ -2564,6 +2628,20 @@ static int dsi_panel_parse_gpios(struct dsi_panel *panel)
 		}
 	}
 
+	panel->reset_config.lcm_enp_gpio = utils->get_named_gpio(utils->data,
+						"qcom,lcm-enp-gpio", 0);
+	if (!gpio_is_valid(panel->reset_config.lcm_enp_gpio)) {
+		DSI_DEBUG("[%s] display: project qcom,lcm-enp-gpio is not set, rc=%d\n",
+			 panel->name, rc);
+	}
+
+	panel->reset_config.lcm_enn_gpio = utils->get_named_gpio(utils->data,
+						"qcom,lcm-enn-gpio", 0);
+	if (!gpio_is_valid(panel->reset_config.lcm_enn_gpio)) {
+		DSI_DEBUG("[%s] display: project qcom,lcm-enn-gpio is not set, rc=%d\n",
+			 panel->name, rc);
+	}
+
 	panel->reset_config.lcd_mode_sel_gpio = utils->get_named_gpio(
 		utils->data, mode_set_gpio_name, 0);
 	if (!gpio_is_valid(panel->reset_config.lcd_mode_sel_gpio))
@@ -4476,9 +4554,21 @@ int dsi_panel_pre_prepare(struct dsi_panel *panel)
 
 	mutex_lock(&panel->panel_lock);
 
+	if (!strcmp(panel->name, "c3f 46 03 0c video mode hd dsi panel")) { //focal IC need lower RST first, then power on
+		if (gpio_is_valid(panel->reset_config.reset_gpio))
+          		gpio_set_value(panel->reset_config.reset_gpio, 0);
+	}
+
 	/* If LP11_INIT is set, panel will be powered up during prepare() */
-	if (panel->lp11_init)
+	if (panel->lp11_init){
+		msleep(2);
+		rc = dsi_panel_lcd_bias_on(panel);
+		if (rc) {
+			DSI_ERR("[%s] failed to reset panel, rc=%d\n", panel->name, rc);
+			goto error;
+		}
 		goto error;
+	}
 
 	rc = dsi_panel_power_on(panel);
 	if (rc) {
