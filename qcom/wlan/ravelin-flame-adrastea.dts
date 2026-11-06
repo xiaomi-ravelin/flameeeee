@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: BSD-3-Clause
+
+/*
+ * Flame uses the stock QRD board-id (0x2000B) instead of the QRD reference
+ * one (0x1000B), so ravelin-qrd-adrastea.dtbo does not get merged in by
+ * merge_dtbs.py. Ship the same WLAN content with Flame IDs so icnss /
+ * wpss (adrastea/wpss.mdt) / wlan_msa_mem match the stock dtbo.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include "ravelin-adrastea.dtsi"
+
+/ {
+	model = "Qualcomm Technologies, Inc. Flame QRD";
+	compatible = "qcom,ravelin-qrd", "qcom,ravelin", "qcom,qrd";
+	qcom,msm-id = <581 0x10000>, <568 0x10000>, <582 0x10000>, <602 0x10000>,
+			<653 0x10000>, <654 0x10000>;
+	qcom,board-id = <0x2000B 0>, <0x2000B 0x600>;
+};

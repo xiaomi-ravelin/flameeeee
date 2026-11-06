@@ -280,6 +280,14 @@
 	};
 };
 
+&battery_charger {
+	qcom,display-panels = <&dsi_panel_c3f_43_02_0a_hd_video>,
+			      <&dsi_panel_c3f_37_02_0b_hd_video>,
+			      <&dsi_panel_c3f_46_03_0c_hd_video>,
+			      <&dsi_panel_c3f_35_02_0d_hd_video>,
+			      <&dsi_panel_c3f_43_02_0g_hd_video>;
+};
+
 &qupv3_se1_i2c {
 	#address-cells = <0x01>;
 	#size-cells = <0x00>;

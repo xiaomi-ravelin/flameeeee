@@ -7,9 +7,4 @@
 	qcom,thermal-mitigation = <3400000 3200000 3000000 2800000 2600000
 				2400000 2200000 2000000 1800000 1400000 1200000
 				1000000 800000 450000 385000>;
-	qcom,display-panels = <&dsi_panel_c3f_43_02_0a_hd_video>,
-			      <&dsi_panel_c3f_37_02_0b_hd_video>,
-			      <&dsi_panel_c3f_46_03_0c_hd_video>,
-			      <&dsi_panel_c3f_35_02_0d_hd_video>,
-			      <&dsi_panel_c3f_43_02_0g_hd_video>;
 };
